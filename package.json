@@ -2,10 +2,14 @@
   "name": "node_todos",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server/server.js",
   "scripts": {
-    "test": "npm test /server/**/*.test.js",
-    "test-watch": "nodemon --exec npm test"
+    "start": "node server/server.js",
+    "test": "mocha server/**/*.test.js",
+    "test-watch": "nodemon --exec \" npm test \""
+  },
+  "engines":{
+    "node": "8.12.0"
   },
   "author": "Marky Neri",
   "license": "ISC",
