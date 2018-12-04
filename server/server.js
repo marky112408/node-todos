@@ -1,3 +1,12 @@
+var env = process.env.NODE_ENV || 'development';
+process.env.MONGODB_URI = 'mongodb://marky112408:soulripper112408@ds225294.mlab.com:25294/todos_app';
+if(env == "development"){
+	process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp';
+}else if(env == "test"){
+	process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest';
+}
+
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var {ObjectID} = require('mongodb');
