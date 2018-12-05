@@ -14,6 +14,7 @@ var {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose.js');
 var {Todo} = require('./models/todos.model.js');
 var {User} = require('./models/users.model.js');
+var {authenticate} = require('./middleware/authenticate.js');
 
 var app = express();
 var port = process.env.PORT || 3000; 
@@ -124,6 +125,11 @@ app.get('/users', (req, res) => {
 	}).catch((err) => {
 		res.status(400).send(err);
 	});
+});
+
+//GET /users/me
+app.get('/users/me', authenticate, (req, res) => {
+	res.send(req.user);
 });
 
 //GET /users/:id
