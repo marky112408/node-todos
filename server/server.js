@@ -6,7 +6,7 @@ if(env == "development"){
 	process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest';
 }
 
-
+var _ = require('lodash');
 var express = require('express');
 var bodyParser = require('body-parser');
 var {ObjectID} = require('mongodb');
@@ -62,25 +62,28 @@ app.get('/todos/:id', (req, res) => {
 });
 
 //Patch /todos/:id
-app.patch('/todos/:id/:text', (req, res) => {
+app.patch('/todos/:id', (req, res) => {
 	var id = req.params.id;
-	var text = req.params.text;
+	// var completed = req.params.completed;
+	var body = _.pick(req.body, ['text', 'completed']);
+	body.completed = true;
 
 	if(!ObjectID.isValid(id)){
 		res.status(404);
 	}
 
-	Todo.findByIdAndUpdate(id, {
-		$set:{
-			text: text
-		}
-	}, {
-		new: true
-	}).then((newTodos) => {
-		if(!newTodos){
+	if(_.isBoolean(body.completed) && body.completed){
+		body.completedAt = new Date().getTime();
+	}else{
+		body.completedAt = null;
+		body.completed = false;
+	}
+
+	Todo.findByIdAndUpdate(id, { $set: body}, {new: true}).then((doc) => {
+		if(!doc){
 			res.status(404).send();
 		}
-		res.send(newTodos);
+		res.send(doc);
 	}).catch((e) => {
 		res.status(400).send();
 	});
@@ -100,6 +103,77 @@ app.delete('/todos/:id', (req, res) => {
 	});
 });
 
+//POST /users
+app.post('/users', (req, res) => {
+	var body = _.pick(req.body, ['email', 'password']);
+	var newUser = new User(body);
+	newUser.save().then((users) => {
+		res.status(200).send(users);
+	}, (err) => {
+		res.status(400).send(err);
+	});
+});
+
+//GET /users
+app.get('/users', (req, res) => {
+	User.find().then((users) => {
+		res.status(200).send({users});
+	}).catch((err) => {
+		res.status(400).send(err);
+	});
+});
+
+//GET /users/:id
+app.get('/users/:id', (req, res) => {
+	var id = req.params.id;
+	if(!ObjectID.isValid(id)){
+		res.status(404).send();
+	}
+
+	User.findById(id).then((user) => {
+		if(!user){
+			res.status(404).send();
+		}
+
+		res.status(200).send(user);
+	}).catch((e) => {
+		res.status(400).send(e);
+	})
+});
+
+//DELETE /users/:id
+app.delete('/users/:id', (req, res) => {
+	var id = req.params.id;
+	if(!ObjectID.isValid(id)){
+		res.status(404).send();
+	}
+
+	User.findByIdAndDelete(id).then((user) => {
+		if(!user){
+			res.status(404).send();
+		}
+
+		res.send(user);
+	}).catch((e) => {
+		res.status(400).send(e);
+	});
+});
+
+//PATCH /users/:id
+app.patch('/users/:id', (req, res) => {
+	var id = req.params.id;
+	var body = _.pick(req.body, ['email', 'password']);
+	if(!ObjectID.isValid(id)){
+		res.status(404).send();
+	}
+	User.findByIdAndUpdate(id, {
+		$set: body
+	},{ new: true}).then((user) => {
+		res.send(user);
+	}).catch((e) => {
+		res.status(400).send();
+	});
+});
 
 
 app.listen(port, () => {
