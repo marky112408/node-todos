@@ -48,11 +48,29 @@ UserSchema.methods.generateAuthToken = function (){
 	});
 }
 
+UserSchema.statics.findByCredentials = function(email, password){
+	return this.findOne({email}).then((user) => {
+		if(!user){
+			return Promise.reject();
+		}
+
+		return new Promise((resolve, reject) => {
+			bcrypt.compare(password, user.password, function(err, res){
+				if(!res){
+					reject();
+				}
+				resolve(user);
+			});
+		});
+	});
+}
+
 UserSchema.statics.findByToken = function(token){
 	var decoded;
 
 	try{
 		decoded = jwt.verify(token, '123abc');
+		// console.log(decoded);
 	}catch(e){
 		return Promise.reject();
 	}

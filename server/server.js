@@ -10,6 +10,7 @@ var _ = require('lodash');
 var express = require('express');
 var bodyParser = require('body-parser');
 var {ObjectID} = require('mongodb');
+var bcrypt = require('bcryptjs');
 
 var {mongoose} = require('./db/mongoose.js');
 var {Todo} = require('./models/todos.model.js');
@@ -118,6 +119,21 @@ app.post('/users', (req, res) => {
 	});
 });
 
+//POST /users/login
+app.post('/users/login', (req, res) => {
+	var body =  _.pick(req.body, ['email', 'password']);
+
+	User.findByCredentials(body.email, body.password).then((user) => {
+		return user.generateAuthToken().then((token) => {
+			res.header('x-auth', token).send(user);
+		});
+		res.send(user);
+	}).catch((e) => {
+		res.status(401).send(e);
+	});
+
+});
+
 //GET /users
 app.get('/users', (req, res) => {
 	User.find().then((users) => {
@@ -183,7 +199,6 @@ app.patch('/users/:id', (req, res) => {
 		res.status(400).send();
 	});
 });
-
 
 app.listen(port, () => {
 	console.log(`Server listening to port ${port}`);
